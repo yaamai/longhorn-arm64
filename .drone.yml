@@ -8,13 +8,13 @@ platform:
 
 steps:
 - name: submodules
-  image: alpine/git
+  image: yaamai/alpine-git:arm64
   commands:
   - git submodule update --init --recursive --remote
 
 # apply patches
 - name: patch
-  image: alpine/git
+  image: yaamai/alpine-git:arm64
   commands:
   - pushd repos/longhorn-engine; patch -p1 ../../longhorn-engine.patch; popd
   - pushd repos/longhorn-manager; patch -p1 ../../longhorn-manager.patch; popd
