@@ -28,7 +28,3 @@ steps:
   - pushd repos/longhorn-engine/
   - make
   - popd
-  privileged: true
-  volumes:
-  - name: socket
-    path: /var/run/docker.sock
