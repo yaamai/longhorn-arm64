@@ -1,0 +1,12 @@
+[submodule "repos/longhorn-engine"]
+	path = repos/longhorn-engine
+	url = https://github.com/longhorn/longhorn-engine.git
+[submodule "repos/longhorn-manager"]
+	path = repos/longhorn-manager
+	url = https://github.com/longhorn/longhorn-manager.git
+[submodule "repos/longhorn-instance-manager"]
+	path = repos/longhorn-instance-manager
+	url = https://github.com/longhorn/longhorn-instance-manager.git
+[submodule "repos/longhorn-ui"]
+	path = repos/longhorn-ui
+	url = https://github.com/longhorn/longhorn-ui.git
