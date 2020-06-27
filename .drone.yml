@@ -16,15 +16,14 @@ steps:
 - name: patch
   image: yaamai/alpine-git:arm64
   commands:
-  - pushd repos/longhorn-engine; patch -p1 ../../longhorn-engine.patch; popd
-  - pushd repos/longhorn-manager; patch -p1 ../../longhorn-manager.patch; popd
-  - pushd repos/longhorn-instance-manager; patch -p1 ../../longhorn-instance-manager.patch; popd
+  - cd repos/longhorn-engine; patch -p1 ../../longhorn-engine.patch; cd ../..
+  - cd repos/longhorn-manager; patch -p1 ../../longhorn-manager.patch; cd ../..
+  - cd repos/longhorn-instance-manager; patch -p1 ../../longhorn-instance-manager.patch; cd ../..
 
 # build engine
 - name: build
   pull: default
   image: library/docker:dind
   commands:
-  - pushd repos/longhorn-engine/
+  - cd repos/longhorn-engine/
   - make
-  - popd
