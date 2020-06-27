@@ -1,0 +1,34 @@
+---
+kind: pipeline
+name: default
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+- name: submodules
+  image: alpine/git
+  commands:
+  - git submodule update --init --recursive --remote
+
+# apply patches
+- name: patch
+  image: alpine/git
+  commands:
+  - pushd repos/longhorn-engine; patch -p1 ../../longhorn-engine.patch; popd
+  - pushd repos/longhorn-manager; patch -p1 ../../longhorn-manager.patch; popd
+  - pushd repos/longhorn-instance-manager; patch -p1 ../../longhorn-instance-manager.patch; popd
+
+# build engine
+- name: build
+  pull: default
+  image: rancher/dapper:1.10.3
+  commands:
+  - pushd repos/longhorn-engine/
+  - dapper ci
+  - popd
+  privileged: true
+  volumes:
+  - name: socket
+    path: /var/run/docker.sock
