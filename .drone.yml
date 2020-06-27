@@ -23,10 +23,10 @@ steps:
 # build engine
 - name: build
   pull: default
-  image: rancher/dapper:1.10.3
+  image: library/docker:dind
   commands:
   - pushd repos/longhorn-engine/
-  - dapper ci
+  - make
   - popd
   privileged: true
   volumes:
