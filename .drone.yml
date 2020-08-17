@@ -25,6 +25,6 @@ steps:
   pull: default
   image: library/docker:dind
   commands:
-  - apk add --update make
+  - apk add --update make curl
   - cd repos/longhorn-engine/
   - make
