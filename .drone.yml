@@ -16,9 +16,9 @@ steps:
 - name: patch
   image: yaamai/alpine-git:arm64
   commands:
-  - cd repos/longhorn-engine; patch -p1 ../../longhorn-engine.patch; cd ../..
-  - cd repos/longhorn-manager; patch -p1 ../../longhorn-manager.patch; cd ../..
-  - cd repos/longhorn-instance-manager; patch -p1 ../../longhorn-instance-manager.patch; cd ../..
+  - cd repos/longhorn-engine; patch -p1 -i ../../longhorn-engine.patch; cd ../..
+  - cd repos/longhorn-manager; patch -p1 -i ../../longhorn-manager.patch; cd ../..
+  - cd repos/longhorn-instance-manager; patch -p1 -i ../../longhorn-instance-manager.patch; cd ../..
 
 # build engine
 - name: build
