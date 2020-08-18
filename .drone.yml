@@ -23,8 +23,10 @@ steps:
 # build engine
 - name: build
   pull: default
-  image: library/docker:dind
+  image: library/docker:dind-rootless
   commands:
+  - dockerd-entrypoint.sh &
+  - sleep 10
   - apk add --update make curl
   - cd repos/longhorn-engine/
   - make
