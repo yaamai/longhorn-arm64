@@ -23,7 +23,7 @@ steps:
 # build engine
 - name: build
   pull: default
-  image: library/docker:dind-rootless
+  image: library/docker:dind
   commands:
   - dockerd-entrypoint.sh &
   - sleep 10
