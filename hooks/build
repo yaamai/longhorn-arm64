@@ -1,3 +1,10 @@
 #!/bin/sh
 
 docker info
+
+cd repos/longhorn-engine; patch -p1 -i ../../longhorn-engine.patch; cd ../..
+cd repos/longhorn-manager; patch -p1 -i ../../longhorn-manager.patch; cd ../..
+cd repos/longhorn-instance-manager; patch -p1 -i ../../longhorn-instance-manager.patch; cd ../..
+
+cd repos/longhorn-engine/
+make
