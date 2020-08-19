@@ -97,7 +97,7 @@ index b559c60..e072d98 100644
  
  RETRY_COUNTS = 100
 -RETRY_INTERVAL = 1
-+RETRY_INTERVAL = 3
++RETRY_INTERVAL = 5
  
  RETRY_COUNTS2 = 100
  
@@ -117,7 +117,7 @@ index a86d57c..429731f 100644
  
      # wait for initial read/write period to pass
 -    time.sleep(2)
-+    time.sleep(10)
++    time.sleep(15)
  
      cleanup_replica(grpc_replica_client)
  
