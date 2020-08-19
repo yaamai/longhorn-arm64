@@ -12,7 +12,7 @@ source scripts/version.org
 { for N in COMMIT GIT_TAG VERSION GITCOMMIT BUILDDATE; do echo "$N=${!N}"; done } > scripts/version
 
 echo VERSION=latest >> scripts/version
-echo REPO=yaamai >> scripts/version
+echo REPO=index.docker.io/yaamai >> scripts/version
 echo PROJECT=longhorn >> scripts/version
 
 BUILD_ARCH=aarch64
