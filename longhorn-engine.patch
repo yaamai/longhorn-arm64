@@ -134,3 +134,15 @@ index 6512b2a..0facd6d 100755
 +#./test
 +#./integration-test
  ./package
+
+diff --git a/package/Dockerfile b/package/Dockerfile
+index 66048d8..fdccc5b 100644
+--- a/package/Dockerfile
++++ b/package/Dockerfile
+@@ -1,4 +1,4 @@
+-FROM ubuntu:18.04
++FROM arm64v8/ubuntu:18.04
+
+ RUN apt-get update && apt-get install -y kmod curl nfs-common fuse \
+         libibverbs1 librdmacm1 libconfig-general-perl libaio1 sg3-utils \
+
