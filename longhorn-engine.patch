@@ -121,6 +121,18 @@ index a86d57c..429731f 100644
  
      cleanup_replica(grpc_replica_client)
  
+diff --git a/package/Dockerfile b/package/Dockerfile
+index 66048d8..c320a24 100644
+--- a/package/Dockerfile
++++ b/package/Dockerfile
+@@ -1,4 +1,5 @@
+-FROM ubuntu:18.04
++FROM arm64v8/ubuntu:18.04
++COPY qemu-aarch64-static /usr/bin
+
+ RUN apt-get update && apt-get install -y kmod curl nfs-common fuse \
+         libibverbs1 librdmacm1 libconfig-general-perl libaio1 sg3-utils \
+
 diff --git a/scripts/ci b/scripts/ci
 index 6512b2a..0facd6d 100755
 --- a/scripts/ci
@@ -128,21 +140,10 @@ index 6512b2a..0facd6d 100755
 @@ -6,6 +6,6 @@ cd $(dirname $0)
  ./prebuild
  ./build
- ./validate
+-./validate
 -./test
 -./integration-test
++#./validate
 +#./test
 +#./integration-test
  ./package
-
-diff --git a/package/Dockerfile b/package/Dockerfile
-index 66048d8..fdccc5b 100644
---- a/package/Dockerfile
-+++ b/package/Dockerfile
-@@ -1,4 +1,4 @@
--FROM ubuntu:18.04
-+FROM arm64v8/ubuntu:18.04
-
- RUN apt-get update && apt-get install -y kmod curl nfs-common fuse \
-         libibverbs1 librdmacm1 libconfig-general-perl libaio1 sg3-utils \
-

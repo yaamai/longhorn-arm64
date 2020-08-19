@@ -3,13 +3,17 @@
 docker info
 
 cd repos/longhorn-engine; patch -p1 -i ../../longhorn-engine.patch; cd ../..
-cd repos/longhorn-manager; patch -p1 -i ../../longhorn-manager.patch; cd ../..
-cd repos/longhorn-instance-manager; patch -p1 -i ../../longhorn-instance-manager.patch; cd ../..
+#cd repos/longhorn-manager; patch -p1 -i ../../longhorn-manager.patch; cd ../..
+#cd repos/longhorn-instance-manager; patch -p1 -i ../../longhorn-instance-manager.patch; cd ../..
 
 cd repos/longhorn-engine/
 mv scripts/version scripts/version.org
 source scripts/version.org
 { for N in COMMIT GIT_TAG VERSION GITCOMMIT BUILDDATE; do echo "$N=${!N}"; done } > scripts/version
+
+VERSION=latest >> scripts/version
+REPO=yaamai
+PROJECT=longhorn
 
 BUILD_ARCH=aarch64
 QEMU_USER_STATIC_ARCH=$([ "${BUILD_ARCH}" == "armhf" ] && echo "${BUILD_ARCH::-2}" || echo "${BUILD_ARCH}")
