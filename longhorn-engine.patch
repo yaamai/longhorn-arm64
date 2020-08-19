@@ -13,7 +13,7 @@ index cbe9546..a2bcfe7 100644
  ARG http_proxy
  ARG https_proxy
  ENV HOST_ARCH=${DAPPER_HOST_ARCH} ARCH=${DAPPER_HOST_ARCH}
-+ENV ARCH=arm64
++ARG ARCH=arm64
  
  # Setup environment
  ENV PATH /go/bin:$PATH
@@ -22,6 +22,7 @@ index cbe9546..a2bcfe7 100644
  
  # Install Go & tools
 -ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm=armv6l GOLANG_ARCH=GOLANG_ARCH_${ARCH} \
++ENV ARCH=arm64
 +ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm=armv6l GOLANG_ARCH_arm64=arm64 GOLANG_ARCH=GOLANG_ARCH_${ARCH} \
      GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
 -RUN wget -O - https://storage.googleapis.com/golang/go1.13.3.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
@@ -120,3 +121,16 @@ index a86d57c..429731f 100644
  
      cleanup_replica(grpc_replica_client)
  
+diff --git a/scripts/ci b/scripts/ci
+index 6512b2a..0facd6d 100755
+--- a/scripts/ci
++++ b/scripts/ci
+@@ -6,6 +6,6 @@ cd $(dirname $0)
+ ./prebuild
+ ./build
+ ./validate
+-./test
+-./integration-test
++#./test
++#./integration-test
+ ./package
