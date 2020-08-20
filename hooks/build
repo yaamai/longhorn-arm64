@@ -4,37 +4,4 @@ docker info
 
 TARGET=$(basename $DOCKER_REPO)
 
-cd repos/$TARGET
-
-patch -p1 -i ../../$TARGET.patch
-
-# create static version file
-mv scripts/version scripts/version.org
-source scripts/version.org
-{ for N in COMMIT GIT_TAG VERSION GITCOMMIT BUILDDATE; do echo "$N=${!N}"; done } > scripts/version
-echo VERSION=latest >> scripts/version
-echo REPO=index.docker.io/yaamai >> scripts/version
-chmod +x scripts/version
-
-make package DAPPER_HOST_ARCH=amd64
-
-
-patch -p1 -i ../../$TARGET-arm64.patch
-
-# prepare cross build
-BUILD_ARCH=aarch64
-QEMU_USER_STATIC_ARCH=$([ "${BUILD_ARCH}" == "armhf" ] && echo "${BUILD_ARCH::-2}" || echo "${BUILD_ARCH}")
-QEMU_USER_STATIC_DOWNLOAD_URL="https://github.com/multiarch/qemu-user-static/releases/download"
-QEMU_USER_STATIC_LATEST_TAG=$(curl -s https://api.github.com/repos/multiarch/qemu-user-static/tags \
-    | grep 'name.*v[0-9]' \
-    | head -n 1 \
-    | cut -d '"' -f 4)
-
-curl -SL "${QEMU_USER_STATIC_DOWNLOAD_URL}/${QEMU_USER_STATIC_LATEST_TAG}/x86_64_qemu-${QEMU_USER_STATIC_ARCH}-static.tar.gz" \
-    | tar xzv
-docker run --rm --privileged multiarch/qemu-user-static:register --reset
-
-# build
-make package DAPPER_HOST_ARCH=arm64
-
-cd ../..
+docker buildx build --push -t $IMAGE_NAME --platform linux/amd64 -f Dockerfile.$TARGET repos/$TARGET
