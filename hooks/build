@@ -2,19 +2,20 @@
 
 docker info
 
-cd repos/longhorn-engine; patch -p1 -i ../../longhorn-engine.patch; cd ../..
-#cd repos/longhorn-manager; patch -p1 -i ../../longhorn-manager.patch; cd ../..
-#cd repos/longhorn-instance-manager; patch -p1 -i ../../longhorn-instance-manager.patch; cd ../..
+TARGET=$(basename $DOCKER_REPO)
 
-cd repos/longhorn-engine/
+cd repos/$TARGET
+
+patch -p1 -i ../../$TARGET.patch
+
+# create static version file
 mv scripts/version scripts/version.org
 source scripts/version.org
 { for N in COMMIT GIT_TAG VERSION GITCOMMIT BUILDDATE; do echo "$N=${!N}"; done } > scripts/version
-
 echo VERSION=latest >> scripts/version
 echo REPO=index.docker.io/yaamai >> scripts/version
-echo PROJECT=longhorn >> scripts/version
 
+# prepare cross build
 BUILD_ARCH=aarch64
 QEMU_USER_STATIC_ARCH=$([ "${BUILD_ARCH}" == "armhf" ] && echo "${BUILD_ARCH::-2}" || echo "${BUILD_ARCH}")
 QEMU_USER_STATIC_DOWNLOAD_URL="https://github.com/multiarch/qemu-user-static/releases/download"
@@ -27,4 +28,7 @@ curl -SL "${QEMU_USER_STATIC_DOWNLOAD_URL}/${QEMU_USER_STATIC_LATEST_TAG}/x86_64
     | tar xzv
 docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
+# build
 make
+
+cd ../..

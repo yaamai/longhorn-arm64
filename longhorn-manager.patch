@@ -1,17 +1,22 @@
 diff --git a/Dockerfile.dapper b/Dockerfile.dapper
-index 44a262f2..101d51f4 100644
+index 44a262f2..37ce034a 100644
 --- a/Dockerfile.dapper
 +++ b/Dockerfile.dapper
-@@ -1,7 +1,7 @@
- FROM ubuntu:18.04
+@@ -1,25 +1,27 @@
+-FROM ubuntu:18.04
++FROM arm64v8/ubuntu:18.04
  # FROM arm=armhf/ubuntu:16.04
++COPY qemu-aarch64-static /usr/bin
  
 -ARG DAPPER_HOST_ARCH=amd64
 +ARG DAPPER_HOST_ARCH=arm64
  ARG http_proxy
  ARG https_proxy
  ENV HOST_ARCH=${DAPPER_HOST_ARCH} ARCH=${DAPPER_HOST_ARCH}
-@@ -11,12 +11,12 @@ RUN apt-get update && \
++ENV ARCH=arm64
+ 
+ RUN apt-get update && \
+     apt-get install -y gcc ca-certificates git wget curl vim less file python-tox python-dev && \
      rm -f /bin/sh && ln -s /bin/bash /bin/sh
  
  ENV DOCKER_URL_amd64=https://get.docker.com/builds/Linux/x86_64/docker-1.10.3 \
@@ -19,10 +24,26 @@ index 44a262f2..101d51f4 100644
 +    DOCKER_URL_arm64=https://github.com/rancher/docker/releases/download/v1.10.3-ros1/docker-1.10.3_arm \
      DOCKER_URL=DOCKER_URL_${ARCH}
  
- RUN wget -O - ${!DOCKER_URL} > /usr/bin/docker && chmod +x /usr/bin/docker
+-RUN wget -O - ${!DOCKER_URL} > /usr/bin/docker && chmod +x /usr/bin/docker
++RUN wget -q -O - ${!DOCKER_URL} > /usr/bin/docker && chmod +x /usr/bin/docker
  
 -ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm=armv6l GOLANG_ARCH=GOLANG_ARCH_${ARCH} \
 +ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm=armv6l GOLANG_ARCH_arm64=arm64 GOLANG_ARCH=GOLANG_ARCH_${ARCH} \
      GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
  
- RUN wget -O - https://storage.googleapis.com/golang/go1.14.1.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
+-RUN wget -O - https://storage.googleapis.com/golang/go1.14.1.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
++RUN wget -q -O - https://storage.googleapis.com/golang/go1.14.1.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
+     go get github.com/rancher/trash && go get -u golang.org/x/lint/golint
+ 
+ ENV DAPPER_SOURCE /go/src/github.com/longhorn/longhorn-manager
+diff --git a/package/Dockerfile b/package/Dockerfile
+index d87059fc..ddf874a9 100644
+--- a/package/Dockerfile
++++ b/package/Dockerfile
+@@ -1,4 +1,5 @@
+-FROM ubuntu:18.04
++FROM arm64v8/ubuntu:18.04
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN apt-get update && apt-get install -y curl vim nfs-common iproute2 dnsutils iputils-ping telnet zip xfsprogs
+ 
