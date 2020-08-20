@@ -16,4 +16,7 @@ cd repos/$TARGET
   chmod +x scripts/version
 cd ../..
 
-docker buildx build -t $IMAGE_NAME --platform linux/amd64,linux/arm64 -f Dockerfile.$TARGET repos/$TARGET
+docker buildx create --name builder
+docker buildx use builder
+docker buildx inspect --bootstrap
+docker buildx build --push -t $IMAGE_NAME --platform linux/amd64,linux/arm64 -f Dockerfile.$TARGET repos/$TARGET
