@@ -1,0 +1,12 @@
+diff --git a/Dockerfile.dapper b/Dockerfile.dapper
+index 92fdeccf..35b347a9 100644
+--- a/Dockerfile.dapper
++++ b/Dockerfile.dapper
+@@ -1,5 +1,5 @@
+-FROM ubuntu:18.04
+-# FROM arm=armhf/ubuntu:16.04
++FROM arm64v8/ubuntu:18.04
++COPY qemu-aarch64-static /usr/bin
+ 
+ ARG DAPPER_HOST_ARCH=amd64
+ ARG http_proxy

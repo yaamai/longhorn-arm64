@@ -1,26 +1,21 @@
 diff --git a/Dockerfile.dapper b/Dockerfile.dapper
-index 44a262f2..37ce034a 100644
+index 44a262f2..92fdeccf 100644
 --- a/Dockerfile.dapper
 +++ b/Dockerfile.dapper
-@@ -1,25 +1,27 @@
--FROM ubuntu:18.04
-+FROM arm64v8/ubuntu:18.04
- # FROM arm=armhf/ubuntu:16.04
-+COPY qemu-aarch64-static /usr/bin
- 
--ARG DAPPER_HOST_ARCH=amd64
-+ARG DAPPER_HOST_ARCH=arm64
+@@ -4,7 +4,8 @@ FROM ubuntu:18.04
+ ARG DAPPER_HOST_ARCH=amd64
  ARG http_proxy
  ARG https_proxy
- ENV HOST_ARCH=${DAPPER_HOST_ARCH} ARCH=${DAPPER_HOST_ARCH}
-+ENV ARCH=arm64
+-ENV HOST_ARCH=${DAPPER_HOST_ARCH} ARCH=${DAPPER_HOST_ARCH}
++ENV HOST_ARCH=${DAPPER_HOST_ARCH}
++ENV ARCH=${DAPPER_HOST_ARCH}
  
  RUN apt-get update && \
      apt-get install -y gcc ca-certificates git wget curl vim less file python-tox python-dev && \
-     rm -f /bin/sh && ln -s /bin/bash /bin/sh
+@@ -12,14 +13,15 @@ RUN apt-get update && \
  
  ENV DOCKER_URL_amd64=https://get.docker.com/builds/Linux/x86_64/docker-1.10.3 \
--    DOCKER_URL_arm=https://github.com/rancher/docker/releases/download/v1.10.3-ros1/docker-1.10.3_arm \
+     DOCKER_URL_arm=https://github.com/rancher/docker/releases/download/v1.10.3-ros1/docker-1.10.3_arm \
 +    DOCKER_URL_arm64=https://github.com/rancher/docker/releases/download/v1.10.3-ros1/docker-1.10.3_arm \
      DOCKER_URL=DOCKER_URL_${ARCH}
  
@@ -36,29 +31,3 @@ index 44a262f2..37ce034a 100644
      go get github.com/rancher/trash && go get -u golang.org/x/lint/golint
  
  ENV DAPPER_SOURCE /go/src/github.com/longhorn/longhorn-manager
-diff --git a/package/Dockerfile b/package/Dockerfile
-index d87059fc..ddf874a9 100644
---- a/package/Dockerfile
-+++ b/package/Dockerfile
-@@ -1,4 +1,5 @@
--FROM ubuntu:18.04
-+FROM arm64v8/ubuntu:18.04
-+COPY qemu-aarch64-static /usr/bin
- 
- RUN apt-get update && apt-get install -y curl vim nfs-common iproute2 dnsutils iputils-ping telnet zip xfsprogs
- 
-diff --git a/scripts/ci b/scripts/ci
-index c983f758..55ff6fec 100755
---- a/scripts/ci
-+++ b/scripts/ci
-@@ -4,8 +4,8 @@ set -e
- cd $(dirname $0)
- 
- ./build
--./validate
--./test -cover
-+#./validate
-+#./test -cover
- ./package
- 
- image=`cat ../bin/latest_image`

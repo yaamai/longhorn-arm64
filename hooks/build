@@ -16,6 +16,11 @@ echo VERSION=latest >> scripts/version
 echo REPO=index.docker.io/yaamai >> scripts/version
 chmod +x scripts/version
 
+make package DAPPER_HOST_ARCH=amd64
+
+
+patch -p1 -i ../../$TARGET-arm64.patch
+
 # prepare cross build
 BUILD_ARCH=aarch64
 QEMU_USER_STATIC_ARCH=$([ "${BUILD_ARCH}" == "armhf" ] && echo "${BUILD_ARCH::-2}" || echo "${BUILD_ARCH}")
@@ -30,6 +35,6 @@ curl -SL "${QEMU_USER_STATIC_DOWNLOAD_URL}/${QEMU_USER_STATIC_LATEST_TAG}/x86_64
 docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
 # build
-make
+make package DAPPER_HOST_ARCH=arm64
 
 cd ../..
