@@ -5,13 +5,15 @@ docker info
 TARGET=$(basename $DOCKER_REPO)
 
 # create static version file
-mv scripts/version scripts/version.org
-source scripts/version.org
-{ for N in COMMIT GIT_TAG VER VERSION GITCOMMIT BUILDDATE; do echo "$N=${!N}"; done } > scripts/version
-echo VERSION=latest >> scripts/version
-echo VER=latest >> scripts/version
-echo REPO=index.docker.io/yaamai >> scripts/version
-echo "echo \${VER}" >> scripts/version
-chmod +x scripts/version
+cd repos/$TARGET
+  mv scripts/version scripts/version.org
+  source scripts/version.org
+  { for N in COMMIT GIT_TAG VER VERSION GITCOMMIT BUILDDATE; do echo "$N=${!N}"; done } > scripts/version
+  echo VERSION=latest >> scripts/version
+  echo VER=latest >> scripts/version
+  echo REPO=index.docker.io/yaamai >> scripts/version
+  echo "echo \${VER}" >> scripts/version
+  chmod +x scripts/version
+cd ../..
 
 docker buildx build -t $IMAGE_NAME --platform linux/amd64 -f Dockerfile.$TARGET repos/$TARGET
