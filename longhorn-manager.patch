@@ -47,3 +47,18 @@ index d87059fc..ddf874a9 100644
  
  RUN apt-get update && apt-get install -y curl vim nfs-common iproute2 dnsutils iputils-ping telnet zip xfsprogs
  
+diff --git a/scripts/ci b/scripts/ci
+index c983f758..55ff6fec 100755
+--- a/scripts/ci
++++ b/scripts/ci
+@@ -4,8 +4,8 @@ set -e
+ cd $(dirname $0)
+ 
+ ./build
+-./validate
+-./test -cover
++#./validate
++#./test -cover
+ ./package
+ 
+ image=`cat ../bin/latest_image`

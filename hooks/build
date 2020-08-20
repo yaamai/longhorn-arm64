@@ -14,6 +14,7 @@ source scripts/version.org
 { for N in COMMIT GIT_TAG VERSION GITCOMMIT BUILDDATE; do echo "$N=${!N}"; done } > scripts/version
 echo VERSION=latest >> scripts/version
 echo REPO=index.docker.io/yaamai >> scripts/version
+chmod +x scripts/version
 
 # prepare cross build
 BUILD_ARCH=aarch64

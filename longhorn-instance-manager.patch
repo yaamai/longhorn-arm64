@@ -50,3 +50,16 @@ index 397d1ee..82709b1 100644
  
  RUN apt-get update && apt-get install -y kmod curl nfs-common fuse \
          libibverbs1 librdmacm1 libconfig-general-perl libaio1 sg3-utils \
+diff --git a/scripts/ci b/scripts/ci
+index 37943b2..a609814 100755
+--- a/scripts/ci
++++ b/scripts/ci
+@@ -4,6 +4,6 @@ set -e
+ cd $(dirname $0)
+ 
+ ./build
+-./validate
+-./test
++#./validate
++#./test
+ ./package
