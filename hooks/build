@@ -4,4 +4,4 @@ docker info
 
 TARGET=$(basename $DOCKER_REPO)
 
-docker buildx build --push -t $IMAGE_NAME --platform linux/amd64 -f Dockerfile.$TARGET repos/$TARGET
+docker buildx build -t $IMAGE_NAME --platform linux/amd64 -f Dockerfile.$TARGET repos/$TARGET
