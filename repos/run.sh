@@ -1,4 +1,6 @@
-#!/bin/bash -ex
+#!/bin/bash -x
+
+TARGET=$1
 
 if [[ ! -e /tmp/qemu-aarch64-static ]]; then
   BUILD_ARCH=aarch64
@@ -16,9 +18,9 @@ fi
 cp docker /usr/local/bin/docker || true
 sudo cp docker /usr/local/bin/docker || true
 
-pushd longhorn-engine
-patch --dry-run -R -p1 -i ../patches/engine.patch
-[[ $? -ne 0 ]] && patch -p1 -i ../patches/engine.patch
+pushd longhorn-$TARGET
+patch -N --dry-run --silent -p1 -i ../patches/$TARGET.patch 2>/dev/null
+[[ $? -eq 0 ]] && patch -p1 -i ../patches/$TARGET.patch
 
 if [[ ! -e scripts/version.org ]]; then
   mv scripts/version scripts/version.org
@@ -33,7 +35,7 @@ fi
 
 # in dapper, cannot inject arm64 related configs
 make build || true
-# make package || true
+make package || true
 scripts/package
 
 popd

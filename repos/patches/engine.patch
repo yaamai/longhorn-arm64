@@ -246,34 +246,36 @@ index 66048d8..cd66702 100644
  
  COPY bin/longhorn bin/longhorn-instance-manager /usr/local/bin/
 diff --git a/scripts/package b/scripts/package
-index ba1a1e9..c063a20 100755
+index ba1a1e9..da5a49d 100755
 --- a/scripts/package
 +++ b/scripts/package
-@@ -11,6 +11,18 @@ TAG=${TAG:-${VERSION}}
+@@ -11,14 +11,26 @@ TAG=${TAG:-${VERSION}}
  REPO=${REPO:-longhornio}
  IMAGE=${REPO}/${PROJECT}:${TAG}
- 
+
 +case $(uname -m) in
-+	aarch64 | arm64)
-+		ARCH=arm64
-+		;;
-+	x86_64)
-+		ARCH=amd64
-+		;;
-+	*)
-+		echo "$(uname -a): unsupported architecture"
-+		exit 1
++       aarch64 | arm64)
++               ARCH=arm64
++               ;;
++       x86_64)
++               ARCH=amd64
++               ;;
++       *)
++               echo "$(uname -a): unsupported architecture"
++               exit 1
 +esac
 +
  if [ ! -x ./bin/longhorn ]; then
      ./scripts/build
  fi
-@@ -18,7 +30,7 @@ fi
- cp /usr/src/tgt/pkg/tgt_*.deb ./bin/
- cp /usr/local/bin/longhorn-instance-manager ./bin/
- 
+
+-cp /usr/src/tgt/pkg/tgt_*.deb ./bin/
+-cp /usr/local/bin/longhorn-instance-manager ./bin/
++cp /usr/src/tgt/pkg/tgt_*.deb ./bin/ || true
++cp /usr/local/bin/longhorn-instance-manager ./bin/ || true
+
 -docker build -t ${IMAGE} -f package/Dockerfile .
 +docker build --build-arg ARCH=${ARCH} -t ${IMAGE} -f package/Dockerfile .
- 
+
  echo Built ${IMAGE}
- 
+

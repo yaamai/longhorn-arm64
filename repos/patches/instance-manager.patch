@@ -1,0 +1,91 @@
+diff --git a/Dockerfile.dapper b/Dockerfile.dapper
+index f6ba1690..6d67680c 100644
+--- a/Dockerfile.dapper
++++ b/Dockerfile.dapper
+@@ -1,5 +1,5 @@
+ FROM ubuntu:18.04
+-# FROM arm=armhf/ubuntu:16.04
++# FROM arm64=arm64v8/ubuntu:18.04
+ 
+ ARG DAPPER_HOST_ARCH=amd64
+ ARG http_proxy
+@@ -26,14 +26,14 @@ RUN apt-get update && \
+ RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
+ 
+ # Install Go & tools
+-ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm=armv6l GOLANG_ARCH=GOLANG_ARCH_${ARCH} \
++ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm64=arm64 GOLANG_ARCH=GOLANG_ARCH_${ARCH} \
+     GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
+ RUN wget -O - https://storage.googleapis.com/golang/go1.14.1.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
+     go get github.com/rancher/trash && go get -u golang.org/x/lint/golint
+ 
+ # Docker
+ ENV DOCKER_URL_amd64=https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/docker-ce_18.06.3~ce~3-0~ubuntu_amd64.deb \
+-    DOCKER_URL_arm=https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/arm64/docker-ce_18.06.3~ce~3-0~ubuntu_arm64.deb \
++    DOCKER_URL_arm64=https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/arm64/docker-ce_18.06.3~ce~3-0~ubuntu_arm64.deb \
+     DOCKER_URL=DOCKER_URL_${ARCH}
+ 
+ RUN wget ${!DOCKER_URL} -O docker_ce_${ARCH} && dpkg -i docker_ce_${ARCH}
+diff --git a/package/Dockerfile b/package/Dockerfile
+index 397d1eeb..06006de5 100644
+--- a/package/Dockerfile
++++ b/package/Dockerfile
+@@ -1,11 +1,13 @@
+ FROM ubuntu:18.04
+ 
++ARG ARCH=amd64
++
+ RUN apt-get update && apt-get install -y kmod curl nfs-common fuse \
+         libibverbs1 librdmacm1 libconfig-general-perl libaio1 sg3-utils \
+         iputils-ping telnet iperf qemu-utils wget iproute2
+ 
+ # Install grpc_health_probe
+-RUN wget -O /usr/local/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.3.0/grpc_health_probe-linux-amd64 && \
++RUN wget https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.3.2/grpc_health_probe-linux-${ARCH} -O /usr/local/bin/grpc_health_probe && \
+     chmod +x /usr/local/bin/grpc_health_probe
+ 
+ COPY bin/longhorn-instance-manager /usr/local/bin/
+@@ -20,7 +22,7 @@ VOLUME /usr/local/bin
+ 
+ # Add Tini
+ ENV TINI_VERSION v0.18.0
+-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
++ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH} /tini
+ RUN chmod +x /tini
+ ENTRYPOINT ["/tini", "--"]
+ 
+diff --git a/scripts/package b/scripts/package
+index 98d02c8..8e9d2c2 100755
+--- a/scripts/package
++++ b/scripts/package
+@@ -7,6 +7,18 @@ cd $(dirname $0)/..
+
+ PROJECT=`basename "$PWD"`
+
++case $(uname -m) in
++  aarch64 | arm64)
++    ARCH=arm64
++    ;;
++  x86_64)
++    ARCH=amd64
++    ;;
++  *)
++    echo "$(uname -a): unsupported architecture"
++    exit 1
++esac
++
+ if [ ! -x ./bin/longhorn ]; then
+     ./scripts/build
+ fi
+@@ -16,9 +28,9 @@ TAG="v${APIVERSION}_`date -u +%Y%m%d`"
+ REPO=${REPO:-longhornio}
+ IMAGE=${REPO}/${PROJECT}:${TAG}
+
+-cp /usr/src/tgt/pkg/tgt_*.deb ./bin/
++cp /usr/src/tgt/pkg/tgt_*.deb ./bin/ || true
+
+-docker build -t ${IMAGE} -f package/Dockerfile .
++docker build --build-arg ARCH=${ARCH} -t ${IMAGE} -f package/Dockerfile .
+
+ echo Built ${IMAGE}
+
