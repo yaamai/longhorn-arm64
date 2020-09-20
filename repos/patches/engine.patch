@@ -1,0 +1,279 @@
+diff --git a/Dockerfile.dapper b/Dockerfile.dapper
+index cbe9546..90b3c9b 100644
+--- a/Dockerfile.dapper
++++ b/Dockerfile.dapper
+@@ -1,5 +1,5 @@
+ FROM ubuntu:18.04
+-# FROM arm=armhf/ubuntu:16.04
++# FROM arm64=arm64v8/ubuntu:18.04
+ 
+ ARG DAPPER_HOST_ARCH=amd64
+ ARG http_proxy
+@@ -26,20 +26,24 @@ RUN apt-get update && \
+ RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
+ 
+ # Install Go & tools
+-ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm=armv6l GOLANG_ARCH=GOLANG_ARCH_${ARCH} \
++ENV GOLANG_ARCH_amd64=amd64 GOLANG_ARCH_arm64=arm64 GOLANG_ARCH=GOLANG_ARCH_${ARCH} \
+     GOPATH=/go PATH=/go/bin:/usr/local/go/bin:${PATH} SHELL=/bin/bash
+-RUN wget -O - https://storage.googleapis.com/golang/go1.13.3.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
++RUN wget -O - https://storage.googleapis.com/golang/go1.14.4.linux-${!GOLANG_ARCH}.tar.gz | tar -xzf - -C /usr/local && \
+     go get github.com/rancher/trash && go get -u golang.org/x/lint/golint
+ 
+ # Docker
+ ENV DOCKER_URL_amd64=https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/docker-ce_18.06.3~ce~3-0~ubuntu_amd64.deb \
+-    DOCKER_URL_arm=https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/arm64/docker-ce_18.06.3~ce~3-0~ubuntu_arm64.deb \
++    DOCKER_URL_arm64=https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/arm64/docker-ce_18.06.3~ce~3-0~ubuntu_arm64.deb \
+     DOCKER_URL=DOCKER_URL_${ARCH}
+ 
+ RUN wget ${!DOCKER_URL} -O docker_ce_${ARCH} && dpkg -i docker_ce_${ARCH}
+ 
+ # Minio
+-RUN wget -O /usr/bin/minio https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.RELEASE.2018-05-25T19-49-13Z && chmod +x /usr/bin/minio
++ENV MINIO_URL_amd64=https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.RELEASE.2018-05-25T19-49-13Z \
++    MINIO_URL_arm64=https://dl.minio.io/server/minio/release/linux-arm64/archive/minio.RELEASE.2020-06-22T03-12-50Z \
++		MINIO_URL=MINIO_URL_${ARCH}
++
++RUN wget ${!MINIO_URL} -O /usr/bin/minio && chmod +x /usr/bin/minio
+ 
+ # Install libqcow
+ RUN wget -O - https://s3-us-west-1.amazonaws.com/rancher-longhorn/libqcow-alpha-20181117.tar.gz | tar xvzf - -C /usr/src
+@@ -51,13 +55,21 @@ RUN cd /usr/src/libqcow-20181117 && \
+ 
+ # GRPC dependencies
+ # GRPC health probe
+-RUN wget -O /usr/local/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.3.0/grpc_health_probe-linux-amd64 && \
++ENV GRPC_HEALTH_PROBE_amd64=https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.3.2/grpc_health_probe-linux-amd64 \
++    GRPC_HEALTH_PROBE_arm64=https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.3.2/grpc_health_probe-linux-arm64 \
++		GRPC_HEALTH_PROBE=GRPC_HEALTH_PROBE_${ARCH}
++
++RUN wget ${!GRPC_HEALTH_PROBE} -O /usr/local/bin/grpc_health_probe && \
+     chmod +x /usr/local/bin/grpc_health_probe
+ 
+ # protoc
++ENV PROTOC_amd64=https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/protoc-3.7.1-linux-x86_64.zip \
++		PROTOC_arm64=https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/protoc-3.7.1-linux-aarch_64.zip \
++		PROTOC=PROTOC_${ARCH}
++
+ RUN cd /usr/src && \
+-    wget https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/protoc-3.7.1-linux-x86_64.zip && \
+-    unzip protoc-3.7.1-linux-x86_64.zip -d /usr/local/
++    wget ${!PROTOC} -O protoc_${ARCH}.zip && \
++    unzip protoc_${ARCH}.zip -d /usr/local/
+ 
+ # protoc-gen-go
+ RUN cd /go/src/github.com/ && \
+@@ -74,7 +86,13 @@ RUN cd /go/src/github.com/ && \
+ RUN pip3 install grpcio==1.22.0 grpcio_tools==1.22.0
+ 
+ # buf
+-RUN wget -O /usr/bin/buf https://github.com/bufbuild/buf/releases/download/v0.16.0/buf-Linux-x86_64 && chmod +x /usr/bin/buf
++ENV GO111MODULE=on
++RUN go get \
++  github.com/bufbuild/buf/cmd/buf \
++  github.com/bufbuild/buf/cmd/protoc-gen-buf-check-breaking \
++  github.com/bufbuild/buf/cmd/protoc-gen-buf-check-lint
++
++#RUN wget -O /usr/bin/buf https://github.com/bufbuild/buf/releases/download/v0.16.0/buf-Linux-x86_64 && chmod +x /usr/bin/buf
+ 
+ # Build liblonghorn
+ RUN cd /usr/src && \
+diff --git a/integration/core/conftest.py b/integration/core/conftest.py
+index 0e04271..0b301d1 100644
+--- a/integration/core/conftest.py
++++ b/integration/core/conftest.py
+@@ -1,4 +1,5 @@
+ import pytest
++import time
+ 
+ from common.core import cleanup_process
+ from common.core import cleanup_replica
+@@ -33,12 +34,14 @@ def engine_manager_client(request, address=INSTANCE_MANAGER_ENGINE):
+ 
+ @pytest.fixture
+ def grpc_controller_client(request, engine_manager_client):
++    time.sleep(3)
+     e = create_engine_process(engine_manager_client)
+     return ControllerClient(get_process_address(e))
+ 
+ 
+ @pytest.fixture
+ def grpc_replica_client(process_manager_client):
++    time.sleep(3)
+     r = create_replica_process(process_manager_client, REPLICA_NAME)
+ 
+     listen = get_process_address(r)
+@@ -48,6 +51,7 @@ def grpc_replica_client(process_manager_client):
+ 
+ @pytest.fixture
+ def grpc_replica_client2(process_manager_client):
++    time.sleep(3)
+     r = create_replica_process(process_manager_client, REPLICA_2_NAME)
+ 
+     listen = get_process_address(r)
+diff --git a/integration/core/test_cli.py b/integration/core/test_cli.py
+index a86d57c..b86a0b2 100644
+--- a/integration/core/test_cli.py
++++ b/integration/core/test_cli.py
+@@ -1158,6 +1158,7 @@ def test_expand_multiple_times():
+         replica_process = create_replica_process(rm_client, REPLICA_NAME)
+         grpc_replica_client = ReplicaClient(
+             get_process_address(replica_process))
++        time.sleep(3)
+         cleanup_replica(grpc_replica_client)
+ 
+         open_replica(grpc_replica_client)
+@@ -1209,11 +1210,13 @@ def test_single_replica_failure_during_engine_start(bin):  # NOQA
+                                               replica_dir=replica_dir1)
+     grpc_replica_client1 = ReplicaClient(
+         get_process_address(replica_process1))
++    time.sleep(3)
+     cleanup_replica(grpc_replica_client1)
+     replica_process2 = create_replica_process(rm_client, REPLICA_2_NAME,
+                                               replica_dir=replica_dir2)
+     grpc_replica_client2 = ReplicaClient(
+         get_process_address(replica_process2))
++    time.sleep(3)
+     cleanup_replica(grpc_replica_client2)
+ 
+     open_replica(grpc_replica_client1)
+@@ -1257,11 +1260,13 @@ def test_single_replica_failure_during_engine_start(bin):  # NOQA
+                                               replica_dir=replica_dir1)
+     grpc_replica_client1 = ReplicaClient(
+         get_process_address(replica_process1))
++    time.sleep(3)
+     grpc_replica_client1.replica_create(size=SIZE_STR)
+     replica_process2 = create_replica_process(rm_client, REPLICA_2_NAME,
+                                               replica_dir=replica_dir2)
+     grpc_replica_client2 = ReplicaClient(
+         get_process_address(replica_process2))
++    time.sleep(3)
+     grpc_replica_client2.replica_create(size=SIZE_STR)
+ 
+     engine_process = create_engine_process(em_client)
+@@ -1352,11 +1357,13 @@ def test_engine_restart_after_sigkill(bin):  # NOQA
+                                               replica_dir=replica_dir1)
+     grpc_replica_client1 = ReplicaClient(
+         get_process_address(replica_process1))
++    time.sleep(3)
+     cleanup_replica(grpc_replica_client1)
+     replica_process2 = create_replica_process(rm_client, REPLICA_2_NAME,
+                                               replica_dir=replica_dir2)
+     grpc_replica_client2 = ReplicaClient(
+         get_process_address(replica_process2))
++    time.sleep(3)
+     cleanup_replica(grpc_replica_client2)
+ 
+     open_replica(grpc_replica_client1)
+@@ -1397,11 +1404,13 @@ def test_engine_restart_after_sigkill(bin):  # NOQA
+                                               replica_dir=replica_dir1)
+     grpc_replica_client1 = ReplicaClient(
+         get_process_address(replica_process1))
++    time.sleep(3)
+     grpc_replica_client1.replica_create(size=SIZE_STR)
+     replica_process2 = create_replica_process(rm_client, REPLICA_2_NAME,
+                                               replica_dir=replica_dir2)
+     grpc_replica_client2 = ReplicaClient(
+         get_process_address(replica_process2))
++    time.sleep(3)
+     grpc_replica_client2.replica_create(size=SIZE_STR)
+ 
+     engine_process = create_engine_process(em_client)
+diff --git a/integration/data/conftest.py b/integration/data/conftest.py
+index bc03087..da21414 100644
+--- a/integration/data/conftest.py
++++ b/integration/data/conftest.py
+@@ -2,6 +2,7 @@ import pytest
+ import os
+ import string
+ import tempfile
++import time
+ 
+ from common.constants import INSTANCE_MANAGER_REPLICA
+ from common.constants import INSTANCE_MANAGER_ENGINE
+@@ -171,6 +172,7 @@ def grpc_replica_client(request, process_manager_client):
+         listen = get_process_address(r)
+ 
+         c = ReplicaClient(listen)
++        time.sleep(3)
+         grpc_replica_client.replica_client = cleanup_replica(c)
+         return grpc_replica_client.replica_client
+ 
+@@ -197,6 +199,7 @@ def grpc_controller_client(request, engine_manager_client):
+ 
+         grpc_controller_client.process_client = \
+             ControllerClient(get_process_address(e))
++        time.sleep(3)
+         return grpc_controller_client.process_client
+ 
+     yield generate_grpc_controller_client
+diff --git a/integration/data/test_upgrade.py b/integration/data/test_upgrade.py
+index 8f7d8ba..3ebae7f 100644
+--- a/integration/data/test_upgrade.py
++++ b/integration/data/test_upgrade.py
+@@ -2,6 +2,7 @@ import grpc
+ from os import path
+ 
+ import pytest
++import time
+ 
+ from common.core import (  # NOQA
+     get_dev, read_dev, write_dev,
+@@ -84,5 +85,6 @@ def test_upgrade(grpc_engine_manager,  # NOQA
+     grpc_controller.client_upgrade(get_process_address(e))
+     wait_for_process_running(grpc_engine_manager, ENGINE_NAME)
+ 
++    time.sleep(3)
+     info = grpc_controller.volume_get()
+     assert info.endpoint == path.join(LONGHORN_DEV_DIR, VOLUME_NAME)
+diff --git a/package/Dockerfile b/package/Dockerfile
+index 66048d8..cd66702 100644
+--- a/package/Dockerfile
++++ b/package/Dockerfile
+@@ -1,11 +1,13 @@
+ FROM ubuntu:18.04
+ 
++ARG ARCH=amd64
++
+ RUN apt-get update && apt-get install -y kmod curl nfs-common fuse \
+         libibverbs1 librdmacm1 libconfig-general-perl libaio1 sg3-utils \
+         iputils-ping telnet iperf qemu-utils wget iproute2
+ 
+ # Install grpc_health_probe
+-RUN wget -O /usr/local/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.3.0/grpc_health_probe-linux-amd64 && \
++RUN wget https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.3.2/grpc_health_probe-linux-${ARCH} -O /usr/local/bin/grpc_health_probe && \
+     chmod +x /usr/local/bin/grpc_health_probe
+ 
+ COPY bin/longhorn bin/longhorn-instance-manager /usr/local/bin/
+diff --git a/scripts/package b/scripts/package
+index ba1a1e9..c063a20 100755
+--- a/scripts/package
++++ b/scripts/package
+@@ -11,6 +11,18 @@ TAG=${TAG:-${VERSION}}
+ REPO=${REPO:-longhornio}
+ IMAGE=${REPO}/${PROJECT}:${TAG}
+ 
++case $(uname -m) in
++	aarch64 | arm64)
++		ARCH=arm64
++		;;
++	x86_64)
++		ARCH=amd64
++		;;
++	*)
++		echo "$(uname -a): unsupported architecture"
++		exit 1
++esac
++
+ if [ ! -x ./bin/longhorn ]; then
+     ./scripts/build
+ fi
+@@ -18,7 +30,7 @@ fi
+ cp /usr/src/tgt/pkg/tgt_*.deb ./bin/
+ cp /usr/local/bin/longhorn-instance-manager ./bin/
+ 
+-docker build -t ${IMAGE} -f package/Dockerfile .
++docker build --build-arg ARCH=${ARCH} -t ${IMAGE} -f package/Dockerfile .
+ 
+ echo Built ${IMAGE}
+ 
