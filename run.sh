@@ -41,9 +41,9 @@ if [[ ! -e scripts/version.org ]]; then
 fi
 
 # in dapper, cannot inject arm64 related configs
-make build || true
-make package || true
-scripts/package || true
+sudo make build || true
+sudo make package || true
+sudo scripts/package || true
 
 if [[ $TARGET == "instance-manager" && -e bin/latest_image ]]; then
   tag=$(cat bin/latest_image | cut -d: -f2)
