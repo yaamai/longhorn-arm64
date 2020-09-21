@@ -13,12 +13,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+
     - name: Checkout submodules
       uses: textbook/git-checkout-submodule-action@master
-    - name: test
-      run: pwd
-    - name: test
-      run: ls -alh
-    - name: Build the Docker image
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build ui
       run: ./run.sh ui
+    - name: Build engine
+      run: ./run.sh engine
+    - name: Build instance-manager
+      run: ./run.sh instance-manager
+    - name: Build manager
+      run: ./run.sh manager
+
+    - name: push
+      run: ./push.sh
