@@ -28,10 +28,10 @@ patch -N --dry-run --silent -p1 -i ../patches/$TARGET.patch 2>/dev/null
 
 if [[ ! -e scripts/version.org ]]; then
   sudo mv scripts/version scripts/version.org || true
-  sudo chmod 777 scripts/version || true
   mv scripts/version scripts/version.org || true
+
   source scripts/version.org
-  { for N in COMMIT GIT_TAG VER VERSION GITCOMMIT BUILDDATE; do echo "$N=${!N}"; done } > scripts/version
+  { for N in COMMIT GIT_TAG VER VERSION GITCOMMIT BUILDDATE; do echo "$N=${!N}"; done } | sudo tee scripts/version
   echo VERSION=latest >> scripts/version
   echo VER=latest >> scripts/version
   echo REPO=index.docker.io/yaamai >> scripts/version
