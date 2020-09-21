@@ -19,4 +19,4 @@ jobs:
     - name: test
       run: ls -alh
     - name: Build the Docker image
-      run: ./run ui
+      run: ./run.sh ui
