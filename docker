@@ -98,6 +98,22 @@ def dockerhub_arm64ize(dockerfile, allowed):
 
     return modified_dockerfile
 
+def remove_build_arg(args, target):
+    ret = []
+    next_arg = ""
+    next_skip = False
+    for idx, a in enumerate(args):
+        if idx < len(args)-1:
+            next_arg = args[idx+1]
+        if a == "--build-arg" and next_arg in target:
+            next_skip = True
+            continue
+        if next_skip:
+            next_skip = False
+            continue
+        ret.append(a)
+    return ret
+
 def main():
     args = sys.argv
 
@@ -118,6 +134,7 @@ def main():
             inject_run_env(args, ["-e", "GOOS=linux", "-e", "GOARCH=arm64"])
 
         if subc == "build":
+            args = remove_build_arg(args, ["ARCH=amd64"])
             inject_build_arg(args, ["--build-arg", "DAPPER_HOST_ARCH=arm64", "--build-arg", "ARCH=arm64"])
             target_dockerfile = get_dockerfile_path(args)
             dockerfile = open(target_dockerfile).read().split("\n")

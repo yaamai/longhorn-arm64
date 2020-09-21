@@ -19,8 +19,8 @@ cp docker /usr/local/bin/docker || true
 sudo cp docker /usr/local/bin/docker || true
 
 pushd $TARGET
-patch -N --dry-run --silent -p1 -i patches/$TARGET.patch 2>/dev/null
-[[ $? -eq 0 ]] && patch -p1 -i patches/$TARGET.patch
+patch -N --dry-run --silent -p1 -i ../patches/$TARGET.patch 2>/dev/null
+[[ $? -eq 0 ]] && patch -p1 -i ../patches/$TARGET.patch
 
 if [[ ! -e scripts/version.org ]]; then
   mv scripts/version scripts/version.org
@@ -38,9 +38,14 @@ make build || true
 make package || true
 scripts/package
 
+if [[ $TARGET == "instance-manager" && -e bin/latest_image ]]; then
+  tag=$(cat bin/latest_image | cut -d: -f2)
+  docker tag yaamai/instance-manager:$tag yaamai/longhorn-instance-manager:latest || true
+fi
+
 docker tag longhornio/longhorn-ui:latest yaamai/longhorn-ui:latest || true
-docker tag longhornio/longhorn-manager:latest_arm64 yaamai/longhorn-manager:latest || true
-docker tag yaamai/longhorn-instance-manager:v1_20200920 yaamai/longhorn-instance-manager:latest || true
-docker tag yaamai/longhorn-engine:latest yaamai/longhorn-engine:latest || true
+docker tag longhornio/longhorn-manager:latest yaamai/longhorn-manager:latest || true
+docker tag yaamai/instance-manager:v1_20200921 yaamai/longhorn-instance-manager:latest || true
+docker tag yaamai/engine:latest yaamai/longhorn-engine:latest || true
 
 popd
