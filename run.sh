@@ -32,10 +32,10 @@ if [[ ! -e scripts/version.org ]]; then
 
   source scripts/version.org
   { for N in COMMIT GIT_TAG VER VERSION GITCOMMIT BUILDDATE; do echo "$N=${!N}"; done } | sudo tee scripts/version
-  echo VERSION=latest >> scripts/version
-  echo VER=latest >> scripts/version
-  echo REPO=index.docker.io/yaamai >> scripts/version
-  echo "echo \${VER}" >> scripts/version
+  echo VERSION=latest | sudo tee -a scripts/version
+  echo VER=latest | sudo tee -a scripts/version
+  echo REPO=index.docker.io/yaamai | sudo tee -a scripts/version
+  echo "echo \${VER}" | sudo tee -a scripts/version
   sudo chmod +x scripts/version || true
   chmod +x scripts/version || true
 fi
