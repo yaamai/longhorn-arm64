@@ -19,7 +19,10 @@ cp docker /usr/local/bin/docker || true
 sudo cp docker /usr/local/bin/docker || true
 
 pushd $TARGET
+pwd
+ls -alh
 cat ../patches/$TARGET.patch
+
 patch -N --dry-run --silent -p1 -i ../patches/$TARGET.patch 2>/dev/null
 [[ $? -eq 0 ]] && patch -p1 -i ../patches/$TARGET.patch
 
