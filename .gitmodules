@@ -8,5 +8,5 @@
 	path = instance-manager
 	url = https://github.com/longhorn/longhorn-instance-manager.git
 [submodule "repos/longhorn-ui"]
-	path = longhorn-ui
+	path = ui
 	url = https://github.com/longhorn/longhorn-ui.git
