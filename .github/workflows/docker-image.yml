@@ -35,4 +35,4 @@ jobs:
       run: ./run.sh manager
 
     - name: push
-      run: ./push.sh
+      run: sudo ./push.sh
