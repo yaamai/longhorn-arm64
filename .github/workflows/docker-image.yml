@@ -14,5 +14,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: test
+      run: pwd
+    - name: test
+      run: ls -alh
     - name: Build the Docker image
       run: env && pwd && ls -alh && ./run ui
