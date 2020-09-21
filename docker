@@ -1,0 +1,135 @@
+#!/usr/bin/python3
+import os
+import sys
+import subprocess
+import shutil
+from contextlib import contextmanager, ExitStack
+
+log = open("/tmp/docker-hook.log", "a+")
+def eprint(*args, **kwargs):
+    print(*args, file=log, **kwargs)
+
+@contextmanager
+def copy_file(src, dest):
+    try:
+        shutil.copy(src, dest)
+        yield
+    finally:
+        os.remove(dest)
+
+@contextmanager
+def replace_file(target, data):
+    try:
+        shutil.move(target, target+".org")
+        with open(target, "w") as f:
+            f.write(data)
+        yield
+    finally:
+        os.remove(target)
+        shutil.move(target+".org", target)
+
+def get_dockerfile_path(args):
+    dockerfile_candidate = [e for e in sys.argv if "Dockerfile" in e]
+    # default_dockerfile = all([e != "-f" for e in sys.argv])
+    target_dockerfile = "Dockerfile"
+    if dockerfile_candidate:
+        target_dockerfile = dockerfile_candidate[0] 
+    return target_dockerfile
+
+def get_docker_build_context(args):
+    prev = ""
+    for arg in args[1:]:
+        if prev != "-f" and arg.startswith("/"):
+            return arg
+        prev = arg
+    return "."
+
+def get_subcommand(args):
+    for arg in args[1:]:
+        if not arg.startswith("-"):
+            return arg
+
+def inject_run_env(args, inj):
+    if get_subcommand(args) == "run":
+        args[2:2] = inj
+
+def inject_build_arg(args, inj):
+    if get_subcommand(args) == "build":
+        args[2:2] = inj
+
+def replace_from_image(dockerfile, target, to):
+    modified_dockerfile = []
+
+    for line in dockerfile:
+        fields = line.split(" ")
+        if line.startswith("FROM ") and len(fields) > 0 and target in fields[1]:
+            fields[1] = to
+            line = " ".join(fields)
+        modified_dockerfile.append(line)
+
+    return modified_dockerfile
+
+def replace_arch_name(dockerfile, target, to):
+    modified_dockerfile = []
+
+    for line in dockerfile:
+        if target in line:
+            line = line.replace(target, to)
+        modified_dockerfile.append(line)
+
+    return modified_dockerfile
+
+def dockerhub_arm64ize(dockerfile, allowed):
+    modified_dockerfile = []
+
+    for line in dockerfile:
+        fields = line.split(" ")
+        if line.startswith("FROM ") and len(fields) > 0:
+            if any([e in fields[1] for e in allowed]):
+                if "arm64" not in fields[1]:
+                    fields[1] = "arm64v8/" + fields[1]
+                line = " ".join(fields)
+                modified_dockerfile.append(line)
+                modified_dockerfile.append("COPY qemu-aarch64-static /usr/bin/qemu-aarch64-static")
+            else:
+                modified_dockerfile.append(line)
+        else:
+            modified_dockerfile.append(line)
+
+    return modified_dockerfile
+
+def main():
+    args = sys.argv
+
+    eprint("Original: ", args)
+    sys.argv[0] = "/usr/bin/docker"
+    subc = get_subcommand(args)
+
+    with ExitStack() as stack:
+        if subc == "login":
+            return
+
+        if subc == "version":
+            if args[2:] == ['-f', '{{.Server.Arch}}']:
+                print("arm64")
+                return
+
+        if subc == "run":
+            inject_run_env(args, ["-e", "GOOS=linux", "-e", "GOARCH=arm64"])
+
+        if subc == "build":
+            inject_build_arg(args, ["--build-arg", "DAPPER_HOST_ARCH=arm64", "--build-arg", "ARCH=arm64"])
+            target_dockerfile = get_dockerfile_path(args)
+            dockerfile = open(target_dockerfile).read().split("\n")
+
+            dockerfile = dockerhub_arm64ize(dockerfile, ["photon", "node", "golang", "ubuntu", "nginx"])
+            stack.enter_context(copy_file("/tmp/qemu-aarch64-static", get_docker_build_context(args) + "/qemu-aarch64-static"))
+            stack.enter_context(replace_file(target_dockerfile, "\n".join(dockerfile)))
+            eprint("\n".join(dockerfile))
+
+        eprint("Mutated: ", args)
+
+        subprocess.run(args)
+
+if __name__ == '__main__':
+    main()
