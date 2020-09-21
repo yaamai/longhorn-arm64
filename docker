@@ -122,7 +122,7 @@ def main():
             target_dockerfile = get_dockerfile_path(args)
             dockerfile = open(target_dockerfile).read().split("\n")
 
-            dockerfile = dockerhub_arm64ize(dockerfile, ["photon", "node", "golang", "ubuntu"])
+            dockerfile = dockerhub_arm64ize(dockerfile, ["photon", "node", "golang", "ubuntu", "nginx"])
             stack.enter_context(copy_file("/tmp/qemu-aarch64-static", get_docker_build_context(args) + "/qemu-aarch64-static"))
             stack.enter_context(replace_file(target_dockerfile, "\n".join(dockerfile)))
             eprint("\n".join(dockerfile))
