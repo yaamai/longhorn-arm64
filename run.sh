@@ -18,9 +18,9 @@ fi
 cp docker /usr/local/bin/docker || true
 sudo cp docker /usr/local/bin/docker || true
 
-pushd longhorn-$TARGET
-patch -N --dry-run --silent -p1 -i ../patches/$TARGET.patch 2>/dev/null
-[[ $? -eq 0 ]] && patch -p1 -i ../patches/$TARGET.patch
+pushd $TARGET
+patch -N --dry-run --silent -p1 -i patches/$TARGET.patch 2>/dev/null
+[[ $? -eq 0 ]] && patch -p1 -i patches/$TARGET.patch
 
 if [[ ! -e scripts/version.org ]]; then
   mv scripts/version scripts/version.org
@@ -37,5 +37,10 @@ fi
 make build || true
 make package || true
 scripts/package
+
+docker tag longhornio/longhorn-ui:latest yaamai/longhorn-ui:latest || true
+docker tag longhornio/longhorn-manager:latest_arm64 yaamai/longhorn-manager:latest || true
+docker tag yaamai/longhorn-instance-manager:v1_20200920 yaamai/longhorn-instance-manager:latest || true
+docker tag yaamai/longhorn-engine:latest yaamai/longhorn-engine:latest || true
 
 popd
