@@ -43,7 +43,10 @@ fi
 # in dapper, cannot inject arm64 related configs
 sudo make build || true
 sudo make package || true
+cat scripts/package || true
 sudo scripts/package || true
+sudo bash -x scripts/package || true
+
 
 if [[ $TARGET == "instance-manager" && -e bin/latest_image ]]; then
   tag=$(cat bin/latest_image | cut -d: -f2)
