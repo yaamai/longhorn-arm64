@@ -35,7 +35,8 @@ if [[ ! -e scripts/version.org ]]; then
   echo VER=latest >> scripts/version
   echo REPO=index.docker.io/yaamai >> scripts/version
   echo "echo \${VER}" >> scripts/version
-  chmod +x scripts/version
+  sudo chmod +x scripts/version || true
+  chmod +x scripts/version || true
 fi
 
 # in dapper, cannot inject arm64 related configs
