@@ -27,7 +27,8 @@ patch -N --dry-run --silent -p1 -i ../patches/$TARGET.patch 2>/dev/null
 [[ $? -eq 0 ]] && patch -p1 -i ../patches/$TARGET.patch
 
 if [[ ! -e scripts/version.org ]]; then
-  mv scripts/version scripts/version.org
+  sudo mv scripts/version scripts/version.org || true
+  mv scripts/version scripts/version.org || true
   source scripts/version.org
   { for N in COMMIT GIT_TAG VER VERSION GITCOMMIT BUILDDATE; do echo "$N=${!N}"; done } > scripts/version
   echo VERSION=latest >> scripts/version
