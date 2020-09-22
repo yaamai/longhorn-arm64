@@ -48,6 +48,7 @@ sudo make build || true
 sudo make package || true
 cat scripts/package || true
 sudo scripts/package || true
+sudo make build || true
 sudo bash -x scripts/package || true
 
 
