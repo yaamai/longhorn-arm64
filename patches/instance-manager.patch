@@ -55,13 +55,14 @@ index 397d1eeb..06006de5 100644
  ENTRYPOINT ["/tini", "--"]
  
 diff --git a/scripts/package b/scripts/package
-index 98d02c8..8e9d2c2 100755
+index 98d02c8..a4afa9c 100755
 --- a/scripts/package
 +++ b/scripts/package
-@@ -7,6 +7,18 @@ cd $(dirname $0)/..
+@@ -7,7 +7,19 @@ cd $(dirname $0)/..
 
  PROJECT=`basename "$PWD"`
 
+-if [ ! -x ./bin/longhorn ]; then
 +case $(uname -m) in
 +  aarch64 | arm64)
 +    ARCH=arm64
@@ -74,9 +75,10 @@ index 98d02c8..8e9d2c2 100755
 +    exit 1
 +esac
 +
- if [ ! -x ./bin/longhorn ]; then
++if [ ! -x ./bin/longhorn-instance-manager ]; then
      ./scripts/build
  fi
+
 @@ -16,9 +28,9 @@ TAG="v${APIVERSION}_`date -u +%Y%m%d`"
  REPO=${REPO:-longhornio}
  IMAGE=${REPO}/${PROJECT}:${TAG}

@@ -37,7 +37,6 @@ if [[ ! -e scripts/version.org ]]; then
   echo REPO=index.docker.io/yaamai | sudo tee -a scripts/version
   echo "export GOOS=linux" | sudo tee -a scripts/version
   echo "export GOARCH=arm64" | sudo tee -a scripts/version
-  echo "export CGO_ENABLED=0" | sudo tee -a scripts/version
   echo "echo \${VER}" | sudo tee -a scripts/version
   sudo chmod +x scripts/version || true
   chmod +x scripts/version || true
@@ -49,6 +48,7 @@ sudo make package || true
 cat scripts/package || true
 sudo scripts/package || true
 sudo make build || true
+file bin/longhorn-instance-manager || true
 sudo bash -x scripts/package || true
 
 
