@@ -35,6 +35,8 @@ if [[ ! -e scripts/version.org ]]; then
   echo VERSION=latest | sudo tee -a scripts/version
   echo VER=latest | sudo tee -a scripts/version
   echo REPO=index.docker.io/yaamai | sudo tee -a scripts/version
+  echo GOOS=linux | sudo tee -a scripts/version
+  echo GOARCH=arm64 | sudo tee -a scripts/version
   echo "echo \${VER}" | sudo tee -a scripts/version
   sudo chmod +x scripts/version || true
   chmod +x scripts/version || true
