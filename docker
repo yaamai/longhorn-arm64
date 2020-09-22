@@ -5,9 +5,10 @@ import subprocess
 import shutil
 from contextlib import contextmanager, ExitStack
 
-log = open("/tmp/docker-hook.log", "a+")
+# log = open("/tmp/docker-hook.log", "a+")
 def eprint(*args, **kwargs):
-    print(*args, file=log, **kwargs)
+    pass
+    # print(*args, file=log, **kwargs)
 
 @contextmanager
 def copy_file(src, dest):

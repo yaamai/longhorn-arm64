@@ -23,8 +23,8 @@ pwd
 ls -alh
 cat ../patches/$TARGET.patch
 
-patch -N --dry-run --silent -p1 -i ../patches/$TARGET.patch 2>/dev/null
-[[ $? -eq 0 ]] && patch -p1 -i ../patches/$TARGET.patch
+sudo patch -N --dry-run --silent -p1 -i ../patches/$TARGET.patch 2>/dev/null
+[[ $? -eq 0 ]] && sudo patch -p1 -i ../patches/$TARGET.patch
 
 if [[ ! -e scripts/version.org ]]; then
   sudo mv scripts/version scripts/version.org || true
