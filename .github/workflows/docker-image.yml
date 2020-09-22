@@ -27,12 +27,18 @@ jobs:
 
     - name: Build ui
       run: ./run.sh ui
-    - name: Build engine
-      run: ./run.sh engine
+    - name: push
+      run: sudo ./push.sh
     - name: Build instance-manager
       run: ./run.sh instance-manager
+    - name: push
+      run: sudo ./push.sh
     - name: Build manager
       run: ./run.sh manager
+    - name: push
+      run: sudo ./push.sh
+    - name: Build engine
+      run: ./run.sh engine
 
     - name: push
       run: sudo ./push.sh
